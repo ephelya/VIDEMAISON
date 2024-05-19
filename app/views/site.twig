@@ -1,0 +1,8 @@
+ajout de contenu dans texte dans les pages 
+{% for page in pagelist %}
+   <li><a href="{{ page.url }}">{{ page.title }}</a></li>
+{% endfor %}
+
+<div class='upoloadform'>
+{{ forms.upload|raw}}
+</div>

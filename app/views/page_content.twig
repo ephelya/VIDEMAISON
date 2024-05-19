@@ -1,0 +1,25 @@
+{% extends "page.twig" %}
+ 
+{% block content %}  
+    <div class="content {{ page_name }}_content">
+        <h1>{{ texts['titre1'] }}</h1>
+{#         <h2>Accès par mot de passe et 404 par défaut</h2>
+     Créer une nouvelle page : l'ajouter en bdd, créer son controller (sinon ce sera page par défaut)
+     <br>Ajouter des sections si requis dans la table Sections(pageId, sectionName) et créer les templates twig _S_sectionName.twig
+    <br>Définir un thème css depuis admin - pour le créer, dupliquer le répertoire css/css en css/themecss et définir themecss comme theme actif dans AdminSite et/ou dans bdd,
+    ça permettra d'avoir différents thèmes de base #}
+    <p>{{ texts['exemple_paragraphe'] }}
+    </p>
+
+    
+         {% for section in sections %}
+        <section class="{{ section.name }}" id="{{ section.name }}">
+                 {# {% include "_carousel.twig" %} #}
+
+        {% include section.section_content with {'contents': section.contents, 'texts':section.texts} %}
+         
+
+        </section>
+    {% endfor %} 
+    </div> 
+{% endblock %}

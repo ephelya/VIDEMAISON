@@ -1,0 +1,90 @@
+
+<div id="chart" class="chart"></div>
+<script>
+var data = [
+            { count: 12, date: "Wed Sep 03 2014 20:43:05 GMT-0400 (EDT)" },
+            { count: 1, date: "Thu Sep 04 2014 01:50:51 GMT-0400 (EDT)" },
+            { count: 5, date: "Sat Sep 13 2014 05:45:04 GMT-0400 (EDT)" },
+            { count: 17, date: "Mon Sep 15 2014 11:26:33 GMT-0400 (EDT)" },
+            { count: 8, date: "Tue Sep 16 2014 05:40:35 GMT-0400 (EDT)" },
+            { count: 3, date: "Wed Sep 17 2014 23:38:53 GMT-0400 (EDT)" },
+            { count: 2, date: "Sun Sep 21 2014 16:42:47 GMT-0400 (EDT)" },
+            { count: 19, date: "Thu Sep 25 2014 16:57:42 GMT-0400 (EDT)" },
+            { count: 2, date: "Fri Sep 26 2014 21:56:27 GMT-0400 (EDT)" },
+            { count: 1, date: "Sat Oct 04 2014 01:52:43 GMT-0400 (EDT)" },
+            { count: 1, date: "Sat Oct 04 2014 15:57:51 GMT-0400 (EDT)" },
+            { count: 5, date: "Sat Oct 04 2014 22:13:53 GMT-0400 (EDT)" },
+            { count: 1, date: "Sat Oct 25 2014 17:25:35 GMT-0400 (EDT)" },
+            { count: 15, date: "Wed Nov 05 2014 00:16:09 GMT-0500 (EST)" },
+            { count: 1, date: "Wed Nov 05 2014 22:57:16 GMT-0500 (EST)" },
+            { count: 2, date: "Fri Nov 07 2014 21:48:50 GMT-0500 (EST)" }
+        ];
+
+
+// Conversion des chaînes de dates en objets Date
+data.forEach(function(d) {
+  d.date = new Date(d.date);
+});
+
+var margin = { top: 20, right: 20, bottom: 30, left: 50 };
+var width = window.innerWidth - margin.left - margin.right;
+var height = 100; // Hauteur fixe pour que les cercles s'alignent dans une zone visible
+
+// Échelles et axes
+var x = d3.scaleTime()
+  .range([margin.left, width - margin.right])
+  .domain(d3.extent(data, function(d) { return d.date; }));
+
+var xAxis = d3.axisBottom(x).tickFormat(d3.timeFormat("%B"));
+
+var r = d3.scaleSqrt()
+  .domain([0, d3.max(data, function(d) { return d.count; })])
+  .range([0, 25]); // Taille maximale des cercles
+
+// Création du SVG
+var svg = d3.select('#chart').append('svg')
+  .attr('width', width + margin.left + margin.right)
+  .attr('height', height + margin.top + margin.bottom);
+
+var g = svg.append('g')
+  .attr('transform', 'translate(' + margin.left + ',' + margin.top + ')');
+
+// Ajout de l'axe X
+g.append("g")
+  .attr("class", "x axis")
+  .attr("transform", "translate(0," + height + ")")
+  .call(xAxis);
+
+// Tooltip
+var tooltip = d3.select('body').append('div')
+  .attr('class', 'tooltip')
+  .style('opacity', 0)
+  .style('position', 'absolute');
+
+// Ajout des cercles
+var circles = g.selectAll('circle')
+  .data(data)
+  .enter().append('circle')
+  .attr('cx', function(d) { return x(d.date); })
+  .attr('cy', height / 2) // Centrage des cercles sur la hauteur
+  .attr('r', function(d) { return r(d.count); })
+  .attr('fill', 'steelblue')
+  .on('mouseover', function(d) {
+    tooltip.transition()
+      .duration(200)
+      .style('opacity', 0.9);
+    tooltip.html(d.count + " changes on " + d3.timeFormat("%B %d, %Y")(d.date))
+      .style('left', (d3.event.pageX) + 'px')
+      .style('top', (d3.event.pageY - 28) + 'px');
+  })
+  .on('mouseout', function(d) {
+    tooltip.transition()
+      .duration(500)
+      .style('opacity', 0);
+  });
+
+// Redéfinition de la hauteur du SVG pour accueillir l'axe X
+svg.attr('height', function() {
+  return height + margin.top + margin.bottom + this.querySelector('.x.axis').getBBox().height;
+});
+</script>

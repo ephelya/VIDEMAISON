@@ -1,0 +1,68 @@
+{% extends "page.twig" %}
+
+{% block content %}
+
+<div class="content {{ page_name }}_content">
+    <h1>Gestion des Produits {{ home }}</h1>
+    {{ uploadbutton|raw }}
+
+    {% for catId, catMere in categories %}
+    {% if catId != 0 %}  <!-- Skip root category which is a placeholder for top-level categories -->
+        <h3>{{ catMere.name }}</h3>
+        <div>
+            <div class="accordion">
+                {% for subCatId, subCat in catMere.children %}
+                    <h3>{{ subCat.name }}</h3>
+                    <div>
+                        <ul>
+                            {% for productId, product in subCat.products %}
+                                <li>
+                                    <div class="product-item">
+                                        {% if product.photos|length > 0 %}
+                                        <img src="{{ product.photos[0].urlPhoto }}" alt="Photo principale" onclick="toggleImages({{ productId }})">
+                                        <div id="product-{{ productId }}-images" class="extra-images" style="display: none;">
+                                            {% for photo in product.photos %}
+                                            <img src="{{ photo.urlPhoto }}" alt="Photo supplémentaire">
+                                            {% endfor %}
+                                        </div>
+                                        {% endif %}
+                                        <form action="/saveProductChanges" method="post">
+                                            <input type="text" name="nom" value="{{ product.nom }}">
+                                            <input type="text" name="prix" value="{{ product.prix }}">
+                                            <input type="hidden" name="productId" value="{{ productId }}">
+                                            <button type="submit">Save</button>
+                                            <button type="button" onclick="deleteProduct({{ productId }})">Delete</button>
+                                        </form>
+                                    </div>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+{% endfor %}
+
+</div> 
+
+<script>
+function toggleImages(productId) {
+    var x = document.getElementById("product-" + productId + "-images");
+    if (x.style.display === "none") {
+        x.style.display = "block";
+    } else {
+        x.style.display = "none";
+    }
+}
+
+function deleteProduct(productId) {
+    // Ajouter une confirmation ou un code pour supprimer un produit
+    console.log("Deleting product: ", productId);
+}
+</script>
+
+
+</div>
+
+{% endblock %}

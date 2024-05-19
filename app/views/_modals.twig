@@ -1,0 +1,185 @@
+    <script>
+                // Fonction pour ouvrir une modal
+        function openModal(modal) {
+            modal.style.display = "block";
+        }
+
+        // Fonction pour fermer une modal et vider son formulaire
+        function closeModal(modal) {
+            modal.style.display = "none";
+            modal.querySelector("form").reset();
+        }
+
+    document.addEventListener("DOMContentLoaded", function() {
+    //modèle CSV
+     document.querySelectorAll('.csvmodel').forEach(button => {
+       button.addEventListener('click', function() {
+    var tableName = $(this).attr('data-table');
+    var fetchUrl = "{{ page_data.csv_api }}/" + tableName;
+
+    $.ajax({
+        url: fetchUrl, // URL de votre API
+        type: 'POST',
+        dataType: 'json',
+        contentType: 'application/json',
+        data: JSON.stringify({ tableName: tableName }), // Les données à envoyer à l'API
+        success: function(blob) {
+            // Créer un URL pour le blob
+            console.log("recuo ",blob);
+            var url = window.URL.createObjectURL(blob);
+            var a = document.createElement('a');
+            a.href = url;
+            a.download = tableName + '_CSV.csv';
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+    console.log("Erreur lors de la récupération du fichier CSV : " + textStatus + " - " + errorThrown);
+    try {
+        var response = JSON.parse(jqXHR.responseText);
+        console.log(response.error);
+    } catch(e) {
+        console.log('Réponse non JSON : ', jqXHR.responseText);
+    }
+}
+
+    });
+});
+
+    });
+
+        // Récupération des boutons et des modals
+        var btnAddEvent = document.getElementById("addevent");
+        var btnAddIdea = document.getElementById("addidea");
+        var btnAddcontact = document.getElementById("addcontact");
+        var btnAddtask = document.getElementById("addtask");
+        var btnMoneymove = document.getElementById("moneymove");
+        var modalEvent = document.getElementById("modalEvent");
+        var modalIdea = document.getElementById("modalIdea");
+        var modalTask = document.getElementById("modalTask");
+        var modalContact = document.getElementById("modalContact");
+        var modalMMove = document.getElementById("modalMMove");
+
+
+// Événements de clic pour les boutons
+        btnAddEvent.addEventListener("click", function() {
+            openModal(modalEvent);
+            console.log("Bouton #addevent cliqué");
+        });
+        btnAddIdea.addEventListener("click", function() {
+            console.log("Bouton addidea cliqué");
+            openModal(modalIdea);
+        });
+        btnAddcontact.addEventListener("click", function() {
+            console.log("Bouton addcontact cliqué");
+            openModal(modalContact);
+        });
+        btnAddtask.addEventListener("click", function() {
+            console.log("Bouton addtask cliqué");
+            openModal(modalTask);
+        }); 
+        btnMoneymove.addEventListener("click", function() {
+            console.log("Bouton mmove cliqué");
+            openModal(modalMMove);
+        });
+       // Événements de clic pour fermer la modal en cliquant à l'extérieur
+        window.addEventListener("click", function(event) {
+            if (event.target === modalEvent) {
+            closeModal(modalEvent);
+            } else if (event.target === modalIdea) {
+            closeModal(modalIdea);
+            }
+        });
+/*
+        $(".csvmodel").click(function() {
+            var id = $(this).attr("id");
+            var table = $(this).attr('data-table');
+            console.log("test "+id)+" "+table;
+        });
+    */
+    });
+
+         </script>
+    <!--    button -->
+    <div class='actionbuttons'>
+{#         <a href="#" class="effect" title="addevent" id="addevent">
+            <i class="labrl fa-regular fa-calendar-plus"></i>
+        </a>
+        <a href="#" class="effect" title="addidea" id="addidea">
+            <i class="label fa-regular fa-lightbulb"></i>      
+        </a>
+         <a href="#" class="effect" title="addcontact" id="addcontact">
+        <i class="label fa-solid fa-user-plus"></i>
+      </a>
+      <a href="#" class="effect" title="moneymove" id="moneymove">
+        <i class="fa-solid fa-money-bill-1-wave"></i>
+    </a>
+    <a href="#" class="effect" title="addtask" id="addtask">
+        <i class="label fa-solid fa-screwdriver-wrench"></i>      
+    </a> #}
+     {% for data in page_data.mainmenu %}
+     <a href="cat/{{ data.tag }}"  class="effect" title="add{{ data.tag }}" id="add{{ data.tag }}">
+        <i class="label fa-solid fa-screwdriver-wrench"></i>      
+    </a>
+		
+    {% endfor %}
+    
+
+    </div>
+    <!-- /buttons -->
+
+<!-- modals -->
+        <!-- Modal pour Ajouter un Événement -->
+        <div id="modalEvent" class="modal">
+            <div class="modal-content">
+                <button class='csvmodel' id='events' data-table='events'>CSV</button><a target='_blank'  href='https://docs.google.com/spreadsheets/d/1wqeYytBUO9-Y-hDIMuPz7GjTaEBx0xnoyqAsLySCj7c/edit'>DWD</a>
+                <div class='upsCSV'>{{ page_data.addevents|raw }}</div>
+                {{ page_data.addevent|raw }}
+                <button type="button" onclick="closeModal(modalEvent)">Fermer</button>
+            </div>
+        </div>
+        <!-- Modal pour Ajouter une Idée -->
+        <div id="modalIdea" class="modal">
+            <div class="modal-content">
+            <button type="button" onclick="closeModal(modalIdea)"><i class="fa-regular fa-circle-xmark"></i></button>
+
+            <button class='csvmodel' id='idees' data-table='idees'>template</button><a target='_blank'  href='https://docs.google.com/spreadsheets/d/1lr-WShrT4PywYIU8SQzBBlCEhsuZkLjf6NI7OpZqJ78/edit?usp=drive_web&ouid=115829584183158115437'>DWD</a>
+            <div class='upsCSV'>{{page_data.addideas|raw}}</div>
+              {{page_data.addidea|raw}}
+            </div>
+        </div>
+        <!-- Modal pour Ajouter un Contact -->
+        <div id="modalContact" class="modal">
+            <div class="modal-content">
+            <button class='csvmodel' id='contacts' data-table='contacts'>CSV</button><a target='_blank'  href='https://docs.google.com/spreadsheets/d/1ijRAru4r34XSBGs6PK6QQ8RI65l-ziERBMb1E7bCM-s/edit'>DWD</a>
+
+            <div class='upsCSV'>  {{page_data.addcontacts|raw}}</div>
+            {{page_data.addcontact|raw}}
+                <button type="button" onclick="closeModal(modalContact)">Fermer</button>
+            </div>
+        </div>
+        <!-- Modal pour Mouvement Monétaire -->
+        <div id="modalMMove" class="modal">
+            <div class="modal-content">
+            <button class='csvmodel' id='mouvements_financiers' data-table='mouvements_financiers'>CSV</button><a target='_blank'  href='https://docs.google.com/spreadsheets/d/1ieAfFJAKss6zIxGKZDMQxuNLxDcsQggHlCTWbnnJ8mI/edit#gid=222207234'>DWD</a>
+            <div class='upsCSV'>   {{page_data.addMoneyMoves|raw }}</div>
+             {{page_data.addMoneyMove|raw }}
+                <button type="button" onclick="closeModal(modalMMove)">Fermer</button>
+            </div>
+        </div>
+        <!-- Modal pour Ajouter une Tâche -->
+        <div id="modalTask" class="modal">
+            <div class="modal-content">
+            <button class='csvmodel' id='Taches' data-table='Taches'>CSV</button><a target='_blank'  href='https://docs.google.com/spreadsheets/d/1qpzr0OTohs-6oCIU09Haxd2zGbsK8oFlcIDC0INjPPo/edit#gid=291358768'>DWD</a>
+                <div class='upsCSV'> {{ page_data.addtasks|raw }}</div>
+
+                    {{page_data.addtask|raw}}
+                    <button type="button" onclick="closeModal(modalTask)">Fermer</button>
+            </div>
+        </div>
+<!-- /modals -->
+
+
+
+

@@ -1,0 +1,8 @@
+<div class="sidebar">
+    <ul>
+        {% for link in sidebar_data.navigation_links %}
+            <li><a href="{{ link.url }}">{{ link.label }}</a></li>
+        {% endfor %}
+    </ul>
+    <p>{{ sidebar_data.additional_info }}</p>
+</div>

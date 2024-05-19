@@ -1,0 +1,24 @@
+{% extends "landing.twig" %}
+{% block content %}  
+ template global landing sans header ni footer par défaut, on peut mettre le contenu qu'on veut 
+<div class='content landing_Version' id='chatbot'> 
+       <div class="left-side">
+       <div class="button-container">
+              <button class="button">{{ button_subsc }}</button>
+              <button class="button">{{ button_more }}</button>
+       </div>
+       </div>
+       
+       <div class="right-side">
+       <h1 class="catchphrase">{{ accroche1 }}</h1>
+     <h2 class="subtext">{{ accroche2|raw }}</h2>
+         <div class="chat-box mt-3">
+       <!-- Chat messages will be added here dynamically -->
+       </div>
+       <textarea class="discussion-space" autofocus placeholder="{{ placeholder }}" id="message-input"></textarea>
+           <button type="button" class="btn btn-primary" id="send-btn">Send</button>
+
+       </div>
+       </div>
+</div>
+{% endblock %}

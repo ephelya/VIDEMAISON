@@ -1,0 +1,12 @@
+
+<div class="header__nav">
+    {% for link in page_data.menus.mainmenu %}
+        <div class="navlink"><a  id="{{ link.id }}"  href="{{ link.url }}">{{ link.label }}</a></div>
+    {% endfor %}
+    {% for link in menus.adminMenu %}
+        <div class="navlink"><a  id="{{ link.ident }}"  href="{{ link.url }}">{{ link.value }}</a></div>
+    {% endfor %}
+</div>
+
+
+

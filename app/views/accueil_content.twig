@@ -1,0 +1,59 @@
+{% extends "page.twig" %}
+
+{% block content %}  
+    <div class="content pagecontent">
+    <h1>{{welcome}}</h1>
+    <h2>{{accroche1}}</h2>
+    {{accroche2}}
+{#         <br>créer gestion bdd de la hompage dans \Models\AdminSite::default_landing() pour  vérifier si une landing page est définie ou non. si c'est le cas faire basculer sur landing pour un AB/testing
+        <br> on affiche les sections. peut-on mettre section_x ectends section pour ouvoir gérer un modèle section.twig commun à toutes les sections ??
+        {% for section in sections %}
+            <section class="{{ section.name }}">
+                {% set templateName = 'templates/__S' ~ section.name ~ '.twig' %}
+                {% include templateName ignore missing %}
+            </section>
+        {% endfor %} #}
+             <button onclick="sendData()">Envoyer les Données - TEST API IMGCREATE</button>
+             <a href='admin'>Admin - upload products</a>
+
+    </div>
+
+{# 
+    <script>
+        function sendData() {
+            // Données à envoyer
+            const data = {
+                prompt: "un chaton mignon",
+                size: "150x150",
+            };
+
+            // Configuration de la requête
+            fetch('http://localhost:9007/imgCreate', {
+                method: 'POST',  // Méthode HTTP
+                headers: {
+                    'Content-Type': 'application/json'  // Indique que le corps est JSON
+                },
+                body: JSON.stringify(data)  // Conversion des données en chaîne JSON
+            })
+            .then(response => {
+                if (!response.ok) {  // Vérifie si la réponse a échoué
+                    throw new Error('Network response was not ok. Status: ' + response.status);
+                }
+                return response.json();  // Convertit la réponse en JSON
+            })
+            .then(json => {
+            //  console.log('Réponse de l\'API:', json);  // Log la réponse de l'API
+                const imageUrl = json.img2Url;
+                const userDescription = json.userDescription;    
+                console.log('Réponse de l\'API: imageUrl '+imageUrl+' userDescription: '+userDescription); 
+                })
+            .catch(error => {
+                console.error('Erreur lors de l\'envoi des données:', error);  // Log les erreurs rencontrées lors de la requête
+                const jserror =  error.message
+            });
+        }
+
+    </script>
+ #}
+{% endblock %}
+ 

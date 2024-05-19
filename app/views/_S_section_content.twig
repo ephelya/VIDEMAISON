@@ -1,0 +1,14 @@
+<div class='section_content fullview'> 
+section
+        {% for content in contents %}
+            {% set extra_classes = content.abtest == 1 ? ' abtest' : '' %}
+            {% set extra_id = content.abtest == 1 ? content.contentIdent : '' %}
+            <div class="content-item{{ extra_classes }}" {% if extra_id %}id="{{ extra_id }}"{% endif %}>
+                <p>{{ content.translated_content }}</p>
+            </div>
+        {% endfor %}
+
+    <div class='content'>du texte fullview ici</div>
+    
+
+</div>

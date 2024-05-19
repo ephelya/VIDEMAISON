@@ -1,0 +1,62 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <!-- Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id={{ google_ident }}"></script>
+    <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config',{{ G-XXXXXXX }});
+    </script>
+    <!-- End Google Analytics -->
+
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ page_title }}</title>
+    <meta name="description" content="{{ page_description }}">
+    <meta name="robots" content="index, {{ page_follow }}"> <!-- Instructions pour les moteurs de recherche -->
+    <meta property="og:title" content="{{ page_title }}"> <!-- OG: Titre du contenu -->
+    <meta property="og:description" content="{{ page_description }}"> <!-- OG: Description du contenu -->
+    <meta property="og:image" content="{{ share_img }}"> <!-- OG: Image à afficher lors du partage -->
+    <meta property="og:url" content="{{ page_url }}e"> <!-- OG: URL du contenu -->
+    <meta property="og:type" content="website"> <!-- OG: Type de contenu (website ou article) -->
+    <meta name="twitter:card" content="summary"> <!-- Twitter Card: Type de carte (summary, summary_large_image) -->
+    <meta name="twitter:site" content="@{{  twitter_ident  }}"> <!-- Twitter: Compte Twitter du site -->
+    <meta name="twitter:title" content="{{ page_title }}"> <!-- Twitter: Titre du contenu -->
+    <meta name="twitter:description" content="{{ page_description }}"> <!-- Twitter: Description du contenu -->
+    <meta name="twitter:image" content="{{ share_img }}"> <!-- Twitter: Image à afficher -->
+
+    <link rel="icon" type="image/x-icon" href="{{ home }}favicon.ico">
+
+        <!-- Inclure le fichier CSS Bootstrap -->
+    <link rel="stylesheet" href="{{ home }}css/bootstrap.min.css"> 
+    <!-- fontawesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+
+    <!-- Votre fichier CSS personnalisé (si applicable) -->
+    <link rel="stylesheet" href="{{ home }}css/styles.css">
+    <link rel="stylesheet" href="{{ home }}css/{{ css_theme }}/style.css">
+
+    <!-- fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Birthstone+Bounce:wght@400;500&display=swap" rel="stylesheet">
+
+
+    <!-- Inclure les fichiers JavaScript Bootstrap (jQuery, Popper.js et Bootstrap) -->
+   <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+
+    <script src="{{ home }}js/popper.min.js"></script> 
+    <script src="{{ home }}js/bootstrap.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/masonry-layout@4.2.2/dist/masonry.pkgd.min.js" integrity="sha384-GNFwBvfVxBkLMJpYMOABq3c+d3KnQxudP/mGPkzpZSTYykLBNsZEnG2D9G/X/+7D" crossorigin="anonymous" async></script>
+    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+    <script src="https://d3js.org/d3.v5.min.js"></script>
+
+    <!-- Votre fichier JavaScript personnalisé (si applicable) -->
+    <script src="{{ home }}js/script.js"></script> 
+</head>
+<body class="{{ page }}"> 
+<main>

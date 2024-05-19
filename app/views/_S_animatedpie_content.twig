@@ -1,0 +1,66 @@
+<div class='animatedpie'>
+  <ul>
+    <li class="chart" data-percent="14"><span>14</span><sup>%</sup></li>
+    <li class="chart" data-percent="86"><span>86</span><sup>%</sup></li>
+  </ul>
+  <h1>
+    Animated pie charts
+  </h1>
+ <a href="https://codepen.io/lenymo/pen/jbgwem">codepen</a>
+</div>
+
+<script>
+var options = {
+  scaleColor: false,
+  trackColor: 'rgba(255,255,255,.5)',
+  barColor: '#4e7390',
+  lineWidth: 10,
+  lineCap: 'round',
+  size: 100,
+  animate: 1000,
+  onStep: function(value) {
+    this.$el.find('span').text(Math.round(value));
+  },
+  onStop: function(value, to) {
+    this.$el.find('span').text(Math.round(to));
+  }
+};
+
+$('.chart').easyPieChart(options);
+
+$('.re-init').click(function() {
+  $('.chart').each(function(index, elem){
+    var rand = Math.random() * 100;
+    rand = Math.floor(rand);
+    $(elem).data('easyPieChart').update(rand);
+  });
+})<form>
+    <label><input type="radio" name="mode" id="stacked" value="stacked" checked> Stacked</label>
+  <label><input type="radio" name="mode" id="grouped" value="grouped"> Grouped</label>
+</form>
+
+<div class="info-chart">
+  <div class="tooltip hidden">
+		<p><span class="value">100</span> thousand</p>
+	</div>
+</div>
+
+<table id="infoTable"> 
+<thead> 
+  <caption>Annual consumption of bananas (thousands)</caption>
+    <tr> 
+         <th>1993</th>  <th>1994</th> <th>1994</th> <th>1995</th> <th>1996</th> <th>1997</th> <th>1998</th> <th>1999</th> <th>2000</th> <th>2001</th> <th>2002</th> <th>2003</th> <th>2004</th> <th>2005</th> <th>2006</th> <th>2007</th> <th>2008</th> <th>2009</th> <th>2010</th> <th>2011</th> <th>2012</th> <th>2013</th>
+    </tr> 
+</thead> 
+<tbody> 
+    <tr class="men"> 
+        <td>8</td>  <td>10</td> <td>13</td> <td>19</td> <td>21</td> <td>25</td> <td>22</td> <td>18</td> <td>15</td> <td>13</td> <td>11</td> <td>12</td> <td>15</td> <td>20</td> <td>18</td> <td>17</td> <td>16</td> <td>18</td> <td>23</td> <td>25</td>  <td>22</td> <td>18</td>  
+    </tr>
+        <tr class="women"> 
+         <td>25</td> <td>22</td> <td>18</td> <td>15</td> <td>13</td> <td>11</td> <td>12</td> <td>15</td> <td>20</td> <td>18</td> <td>17</td> <td>16</td> <td>18</td> <td>23</td> <td>25</td>  <td>22</td> <td>18</td>  <td>21</td> <td>19</td> <td>13</td> <td>10</td> <td>8</td>
+    </tr>
+  
+</tbody> 
+</table> 
+
+</script>

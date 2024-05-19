@@ -1,0 +1,9 @@
+{% extends "page.twig" %}
+ 
+{% block content %}  
+    <div class="content {{ page_name }}_content">
+        <h1>{{ texts['welcome'] }}</h1>
+        
+        {{ forms.upload|raw }}
+    </div> 
+{% endblock %}
