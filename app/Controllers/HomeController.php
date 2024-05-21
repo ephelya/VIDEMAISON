@@ -10,7 +10,6 @@ use Psr\Http\Message\ServerRequestInterface as Request;
 class HomeController { 
 
     public function getHomePageData() {
-        error_log("accuel");
         $user = \Models\Sublym_Membres::getUser($_SESSION["userId"]);
         $pageData["page"] = "accueil";
         if ($twig = \Models\Pages::home_content())
@@ -20,8 +19,9 @@ class HomeController {
         $botFilePath= APPDIR . "/views/bot.twig";
         $botExists = file_exists($botFilePath); //if ($botExists) { echo "tw "; } else {echo "no";}
         $chatbot = $botExists ? "bot.twig" : "chatbot.twig";
-        $pageData["chatbot"] = $chatbot;
-
+        $categories = \Models\Produit::listArticlesWithCategories();
+        $pageData["categories"] = $categories;
+        //print_r($pageData);
 
         return ($pageData);
     }

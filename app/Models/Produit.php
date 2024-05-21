@@ -3,37 +3,150 @@ namespace Models;
 use \Models\Admin;
 
 class Produit {
-    public $id;
-    public $nom;
-    public $categorie_id;
-    public $description;
-    public $prix;
-    public $etat;
-    public $valide;
-    public $statut;
-    public $client_id;
+    private $id = null;
+    private $nom = null;
+    private $categorie_id = null;
+    private $description = null;
+    private $prix = null;
+    private $etat = null;
+    private $hauteur = null;
+    private $largeur = null;
+    private $statut = null;
+    private $client_id = null; 
+    private $annonce;
     private $pdo;
+    private $file_url;
 
-    public function __construct() {
-        $this -> pdo = \Models\Admin::db();
+    public function __construct($data) {
+        $this->pdo = \Models\Admin::db();  // Supposons que cette méthode static retourne une instance de PDO
+        $this->id = $data['id'] ?? null;
+        $this->nom = $data['nom'] ?? null;
+        $this->categorie_id = $data['categorie_id'] ?? null;
+        $this->description = $data['description'] ?? null;
+        $this->prix = $data['prix'] ?? null;
+        $this->hauteur = $data['hauteur'] ?? null;
+        $this->largeur = $data['largeur'] ?? null;
+        $this->annonce = $data['annonce'] ?? null;
+        $this->etat = $data['etat'] ?? null;
+        $this->statut = $data['statut'] ?? null;
+        $this->client_id = $data['client_id'] ?? null;
+        $this->file_url = $data['file_url'] ?? null;  // Assurez-vous que file_url est bien fourni dans $data
+    }
+
+    public function setProperty($property, $value) {
+        if (property_exists($this, $property)) {
+            $this->$property = $value;
+        }
+    }
+    public static function getProduct($id) {
+        $pdo = \Models\Admin::db(); // Assurez-vous que cette méthode retourne un objet PDO
+        $sql = "SELECT a.id, a.prix, a.nom, a.description, a.statut, a.clientId, a.hauteur, a.largeur, a.etat,
+                c.id AS categorie_id, c.nom AS categorie, cm.nom AS catMere, cm.id AS catMereId , cli.nom cliNom, cli.email cliMail,  cli.telephone cliTel
+                FROM articles a 
+                LEFT JOIN categories c ON c.id = a.catId
+                LEFT  JOIN clients cli ON cli.id = a.clientId
+                LEFT JOIN categories cm ON cm.id = c.catMere
+                WHERE a.id = ?";
+        $stmt = $pdo->prepare($sql);
+        $stmt->bindParam(1, $id, \PDO::PARAM_INT);
+        $stmt->execute();
+        $article = $stmt->fetch(\PDO::FETCH_ASSOC);
+    
+        error_log("objet ".print_r($article, true));
+    
+        if ($article) {
+            // Assurez-vous que les clés du tableau correspondent aux attributs attendus par le constructeur
+            $productData = [
+                'id' => $article['id'],
+                'nom' => $article['nom']?? null,
+                'categorie_id' => $article['categorie_id']?? null,
+                'description' => $article['description']?? null,
+                'prix' => $article['prix']?? null,
+                'etat' => $article['etat']?? null,
+                'statut' => $article['statut']?? null,
+                'clientId' => $article['client_id'] ?? null,
+                'file_url' => $article['file_url'] ?? null, 
+            ];
+    
+            return new Produit($productData);
+        } else {
+            return null;
+        }
+    }
+    
+
+
+    public function addPhoto($articleId, $fileUrl) {
+        // Vérifier s'il existe déjà une photo principale pour cet article
+        $pdo = \Models\Admin::db();
+        $sqlCheckMain = "SELECT COUNT(*) FROM articlesPhotos WHERE articleId = :articleId AND main = 1";
+        $stmtCheck = $pdo->prepare($sqlCheckMain);
+        $stmtCheck->bindParam(':articleId', $articleId, \PDO::PARAM_INT);
+        $stmtCheck->execute();
+        $mainExists = $stmtCheck->fetchColumn() > 0;
+
+        // Si une photo principale existe déjà, définir $main à 0
+        if ($mainExists) {  $main = 0;  } else { $main = 1; }
+
+        // Insérer ou mettre à jour la photo
+        $sql = "INSERT INTO articlesPhotos (articleId, urlPhoto, main) 
+                VALUES (:articleId, :urlPhoto, :main)
+                ON DUPLICATE KEY UPDATE main = VALUES(main)";
+        $stmt = $pdo->prepare($sql);
+        $stmt->bindParam(':articleId', $articleId, \PDO::PARAM_INT);
+        $stmt->bindParam(':urlPhoto', $fileUrl, \PDO::PARAM_STR);
+        $stmt->bindParam(':main', $main, \PDO::PARAM_INT);
+        $stmt->execute();
+        $photoId = $pdo->lastInsertId();
+
+        // Si c'est la photo principale, mettre à jour la propriété file_url
+        if ($main == 1) {
+            $this->setProperty("file_url", $photoId);
+        }
+
+        return $photoId;
     }
 
     public function create() {
-        $sql = "INSERT INTO Produits (nom, categorie_id, description, prix, etat, valide, statut, client_id) 
-                VALUES (:nom, :categorie_id, :description, :prix, :etat, :valide, :statut, :client_id)";
+        $pdo = \Models\Admin::db();
+        $sql = "INSERT INTO articles (nom, catId, description, prix, file_url, etat, statut, client_id) 
+                VALUES (:nom, :categorie_id, :description, :prix, :etat,  :statut, :client_id)";
         $stmt = $this -> pdo->prepare($sql);
         $stmt->bindParam(':nom', $this->nom, \PDO::PARAM_STR);
         $stmt->bindParam(':categorie_id', $this->categorie_id, \PDO::PARAM_INT);
         $stmt->bindParam(':description', $this->description, \PDO::PARAM_STR);
         $stmt->bindParam(':prix', $this->prix);
+        $stmt->bindParam(':file_url', $this->file_url);
         $stmt->bindParam(':etat', $this->etat, \PDO::PARAM_STR);
-        $stmt->bindParam(':valide', $this->valide, \PDO::PARAM_BOOL);
         $stmt->bindParam(':statut', $this->statut, \PDO::PARAM_STR);
         $stmt->bindParam(':client_id', $this->client_id, \PDO::PARAM_INT);
         $stmt->execute();
         $this->id = $this->pdo->lastInsertId();
         return $this->id;
     }
+
+    public function update($data) {
+        foreach ($data as $key => $value) {
+            $this->setProperty($key, $value);
+        }
+
+        $sql = "UPDATE articles SET nom = :nom, catId = :categorie_id, description = :description, prix = :prix,
+                etat = :etat,  statut = :statut, largeur = :largeur, hauteur = :hauteur, clientId = :clientId, file_url = :file_url WHERE id = :id";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->bindParam(':id', $this->id);
+        $stmt->bindParam(':nom', $this->nom);
+        $stmt->bindParam(':categorie_id', $this->categorie_id);
+        $stmt->bindParam(':description', $this->description);
+        $stmt->bindParam(':prix', $this->prix);
+        $stmt->bindParam(':etat', $this->etat);
+        $stmt->bindParam(':hauteur', $this->hauteur);
+        $stmt->bindParam(':largeur', $this->largeur);
+        $stmt->bindParam(':statut', $this->statut);
+        $stmt->bindParam(':clientId', $this->client_id);
+        $stmt->bindParam(':file_url', $this->file_url);
+        $stmt->execute();
+    }
+
 
     public function edit() {
         $sql = "UPDATE Produits SET nom=:nom, categorie_id=:categorie_id, description=:description, prix=:prix, etat=:etat, valide=:valide, statut=:statut, client_id=:client_id WHERE id=:id";
@@ -51,7 +164,7 @@ class Produit {
     }
 
     public function delete() {
-        $sql = "DELETE FROM Produits WHERE id = :id";
+        $sql = "DELETE FROM articles WHERE id = :id";
         $stmt = $this -> pdo->prepare($sql);
         $stmt->bindParam(':id', $this->id, \PDO::PARAM_INT);
         $stmt->execute();
@@ -93,6 +206,7 @@ class Produit {
         $stmt = $pdo->prepare($sql);
         $stmt->execute();
         $results = $stmt->fetchAll(\PDO::FETCH_ASSOC);
+        //print_r($results);
     
         // Structuration des données
         $categories = [];
@@ -116,7 +230,7 @@ class Produit {
                     'products' => []
                 ];
             }
-    
+            if (!empty($row["annonce"])) { $annonce = oui; }
             // Ajout des produits
             $productId = $row['id'];
             if (!isset($categories[$catMereId]['children'][$catId]['products'][$productId])) {
@@ -124,6 +238,12 @@ class Produit {
                     'id' => $productId,
                     'nom' => $row['nom'],
                     'prix' => $row['prix'],
+                    'statut' => $row['statut'],
+                    'hauteur' => $row['hauteur'],
+                    'largeur' => $row['largeur'],
+                    'annonce' => $row['annonce'],
+                    'etat' => $row['etat'],
+                    'description' => $row['description'],
                     'photos' => []
                 ];
             }
@@ -172,53 +292,95 @@ class Produit {
         $stmt->bindParam(':id', $this->id, \PDO::PARAM_INT);
         $stmt->execute();
     }
+    public static function productsRecord() {
+        $directory = "../UPLOADS";
+        $files = [];
+        $images = self::parcourirRecursivement($directory, $files); // Récupérer les images
+        $main = 1;
+        foreach ($images as $file) {
+            error_log("file ".print_r($file, true));
+    
+            $url = urldecode($file['imageUrl']);  
+            error_log("url $url");  
+            $name = $file['imageName'];  
+            error_log("name $name");  
+            $categories = self::extract_categories_from_image_name($url); 
+            error_log("categories ".print_r($categories, true)); 
+    
+            $parentCategory = $categories[0]; 
+            error_log("Pcategorie $parentCategory");
+            $parentCategoryId = self::saveCategory($parentCategory, "");
+            error_log("Pcategorie $parentCategory $parentCategoryId");
+    
+            $category = $categories[1]; 
+            error_log("categorie $category");
+            $categoryId = self::saveCategory($category, $parentCategoryId);
+            error_log("Categorie $category $categoryId");
+    
+            // Utiliser le chemin complet
+            $file_url = str_replace('../UPLOADS/', '', $url); 
+            $productName = explode(".", self::extract_article_name_from_image_name($name))[0];
+            error_log("productName ".print_r($productName, true));
+            $articleId = self::saveArticle($productName, $categoryId);
+            error_log("articleId $articleId");
+    
+            $product = self::getProduct($articleId);
+            if ($product) {
+                error_log("product objet ".print_r($product, true));
+                // Appeler la méthode addPhoto avec articleId, file_url et main
+                $product->addPhoto($articleId, $file_url, $main);
+                $main = 0;
+                error_log("product objet ".print_r($product, true));
+            } else {
+                error_log("Produit non trouvé pour l'ID $articleId");
+            }
+        }
+    }
+    
+    
 
     public static function productsTransfer()
     {
         error_log("transfer products");
         // Définir le chemin relatif du répertoire racine à scanner
         $directory = "/Users/nathalie/Dropbox/CHECY/VENTES";
-        self::parcourirRecursivement($directory);
+        $files  = self::parcourirRecursivement($directory);
         //error_log("imagestransfer \n"); 
+        foreach($files as $file)
+        {
+            $file_url = self::send_to_api($file["imageUrl"], $file["imageUrl"]); // on récupère l'url
+            self::record_file($file_url); // on va extraire les catégories et enregistrer le produit et ses photos dans la bdd
+            exit;
+        }
        
     }
 
-    public static function parcourirRecursivement($directory) {
-        // Ouvrir le répertoire
-        $dir = opendir($directory);
-        error_log("parcours recursif");
 
-        // Parcourir le contenu du répertoire
+    
+    public static function parcourirRecursivement($directory, &$files = []) {
+        $dir = opendir($directory);
+        error_log("parcours recursife");
+    
         while (($file = readdir($dir)) !== false) {
-            // Ignorer les fichiers spéciaux "." et ".."
             if ($file != "." && $file != "..") {
-                // Construire le chemin complet du fichier ou du répertoire
                 $filePath = $directory . '/' . $file;
     
-                // Si c'est un répertoire, parcourir récursivement
-                if ((is_dir($filePath))&&($directory!="MONIQUE")) {
-                    error_log("dossier $directory, on va voir à l'intérieur \n"); 
-
-                    self::parcourirRecursivement($filePath);
+                if (is_dir($filePath) && $filePath != "MONIQUE") {
+                    self::parcourirRecursivement($filePath, $files);
                 } else {
-                    // Si c'est un fichier, vérifier s'il s'agit d'une image
                     if (self::is_image($file)) {
-                        // Envoyer le nom et l'URL de l'image à descript_api.php
                         $imageUrl = urlencode($filePath);
                         $imageName = urlencode($file);
-                       error_log("c'est une image, on l'envoie à l'api - imageUrl $imageUrl imageName $imageName"); 
-
-                       $file_url = self::send_to_api($imageUrl, $imageUrl); // on récupère l'url
-                       self::record_file(file_url); // on va extraire les catégories et enregistrer le produit et ses photos dans la bdd
-                       exit;
+                        $files[] = ["imageUrl" => $imageUrl, "imageName" => $imageName];
+                        error_log("c'est une image, on l'envoie à l'api - $filePath - $file");
                     }
                 }
             }
         }
-    
-        // Fermer le répertoire
         closedir($dir);
+        return $files; // Retour explicite des fichiers accumulés
     }
+    
     
     // Fonction pour vérifier si le fichier est une image
     public static function is_image($file) {
@@ -238,9 +400,9 @@ class Produit {
         $remote = urldecode($parts[0]);
         error_log("remote $remote");
        $remote = "/".explode("/VENTES/", $remote)[1];
-    //error_log("sendapi $imageName, $imageUrl $remote" );
-/*     imageName :  %2FUsers%2Fnathalie%2FDropbox%2FCHECY%2FVENTES%2Fpoelesantiadhesives_01.JPG,
-    imageUrl :  /Users/nathalie/Dropbox/CHECY/VENTES/poelesantiadhesives_01.JPG  */
+        //error_log("sendapi $imageName, $imageUrl $remote" );
+        /*     imageName :  %2FUsers%2Fnathalie%2FDropbox%2FCHECY%2FVENTES%2Fpoelesantiadhesives_01.JPG,
+        imageUrl :  /Users/nathalie/Dropbox/CHECY/VENTES/poelesantiadhesives_01.JPG  */
 
         // Extraire les catégories et sous-catégories du nom de l'image
         $categories = self::extract_categories_from_image_name($imageUrl);
@@ -293,8 +455,6 @@ class Produit {
     }
     
 
-
-    
     
     public static function upload($filePath) {
         $uploadDir = '/Users/nathalie/Dropbox/PROJETS/VMAISON/UPLOADS/';  // Chemin absolu vers le dossier d'upload
@@ -363,19 +523,51 @@ class Produit {
     }
     
 
-
-    
-
-    
-
-    public static function extract_categories_from_image_name($imageName) {
+    public static function extract_categories_from_image_name($normalizedUrl) {
        // imageUrl :  /Users/nathalie/Dropbox/CHECY/VENTES/poelesantiadhesives_01.JPG 
-
+            error_log("getcategories $normalizedUrl");
         $categories = [];
     
         // Extrait le chemin après 'VENTES'
-        $parts = explode('/VENTES/', $imageName);
-        //error_log("parts url ".print_r($parts, true));
+
+       // $normalizedUrl = str_replace('\\', '/', $url);
+    
+        // Cherche la position du dossier clé "VENTES" ou "UPLOADS"
+        $ventesPos = strpos($normalizedUrl, '/VENTES/');
+        $uploadsPos = strpos($normalizedUrl, '/UPLOADS/');
+    
+        if ($ventesPos !== false) {
+            error_log(" ventes");
+
+            // Extrait la partie de l'URL après "VENTES/"
+            $subPath = substr($normalizedUrl, $ventesPos + 8); // +8 pour passer "/VENTES/"
+        } elseif ($uploadsPos !== false) {
+            error_log("upload");
+
+            // Extrait la partie de l'URL après "UPLOADS/"
+            $subPath = substr($normalizedUrl, $uploadsPos + 8); // +8 pour passer "/UPLOADS/"
+            error_log("path $subPath");
+
+        } else {
+            // Si aucun des deux mots clés n'est trouvé, retourne un tableau vide
+            error_log("vide");
+
+            return [];
+        }
+    
+        // Supprime le nom du fichier à la fin du chemin
+        $subPath = dirname($subPath);
+    
+        // Découpe le chemin en segments
+        $segments = explode('/', $subPath);
+        // Nettoie les segments vides éventuels
+        $cleanSegments = array_filter($segments, function($value) {
+            return !empty($value) && $value != '..' && $value != '.';
+        });
+        error_log("parts url ".print_r($cleanSegments, true));
+        return array_values($cleanSegments);
+
+       
         if (count($parts) < 2) {
             return $categories; // Si le chemin ne contient pas 'VENTES', retourne un tableau vide
         }
@@ -425,12 +617,36 @@ class Produit {
     }
     
 
-    public static function getCategoryByName($categoryName)
+    public static function getCategory($categoryId)
     {
         //error_log("categoryName  : ". print_r($categoryName, true) ." \n"); 
 
         $pdo = Admin::db(); // Assurez-vous que cette méthode retourne un objet PDO
-        $sql = "SELECT * FROM categories WHERE nom = ?";
+        $sql = "SELECT c.id, c.nom categorie, cm.nom catMere, cm.id catMereId FROM categories c 
+        LEFT JOIN categories cm ON cm.id = c.`catMere` 
+        WHERE c.id = ?";
+        $stmt = $pdo->prepare($sql);
+        
+        // Corrigez le binding du paramètre
+        $stmt->bindParam(1, $categoryId);
+        
+        $stmt->execute();
+        
+        // FetchAll retourne un tableau de toutes les lignes trouvées, Fetch retourne la première ligne
+        $category = $stmt->fetch(\PDO::FETCH_ASSOC); // Utilisez fetch() si vous attendez une seule ligne
+       // error_log("category  : ". print_r($category, true) ." \n"); exit();
+
+        return $category;
+    }
+       public static function getCategoryByName($categoryName)
+    {
+        //error_log("categoryName  : ". print_r($categoryName, true) ." \n"); 
+
+        $pdo = Admin::db(); // Assurez-vous que cette méthode retourne un objet PDO
+        $sql = "SELECT c.id, c.nom categorie, cm.nom catMere, cm.id catMereId FROM categories c 
+        LEFT JOIN categories cm ON cm.id = c.`catMere` WHERE c.nom = ?";
+         $sql2 = "SELECT c.id, c.nom categorie, cm.nom catMere, cm.id catMereId FROM categories c 
+         LEFT JOIN categories cm ON cm.id = c.`catMere` WHERE c.nom = '$categoryName'";
         $stmt = $pdo->prepare($sql);
         
         // Corrigez le binding du paramètre
@@ -440,7 +656,7 @@ class Produit {
         
         // FetchAll retourne un tableau de toutes les lignes trouvées, Fetch retourne la première ligne
         $category = $stmt->fetch(\PDO::FETCH_ASSOC); // Utilisez fetch() si vous attendez une seule ligne
-       // error_log("category  : ". print_r($category, true) ." \n"); exit();
+       error_log("category $sql2   : ". print_r($category, true) ." \n"); 
 
         return $category;
     }
@@ -452,7 +668,7 @@ class Produit {
         // Vérifiez d'abord si la catégorie existe déjà
         $sql = "SELECT id FROM categories WHERE nom = ? ";
         $sql2 = "SELECT id FROM categories WHERE nom = '$categoryName' ";
-        //error_log("sql  : $sql2 \n"); exit();
+        error_log("sql select  : $sql2 \n"); 
 
         $stmt = $pdo->prepare($sql);
         
@@ -463,18 +679,24 @@ class Produit {
         
         // Récupérer l'ID si la catégorie existe déjà
         $existingId = $stmt->fetchColumn();
+        error_log("existingId  : $existingId \n"); 
+
         if ($existingId) {
+            error_log("existingId ok \n"); 
             return $existingId;
         }
 
         // Si la catégorie n'existe pas, créez-la
         $sql = "INSERT INTO categories (nom, catMere) VALUES (?, ?)";
+        $sql2 = "INSERT INTO categories (nom, catMere) VALUES ('$categoryName', $parentCategoryId)";
+        error_log("sql insert : $sql2 \n"); 
+
         $stmt = $pdo->prepare($sql);
         
         // Liez les paramètres et exécutez la requête
         $stmt->bindParam(1, $categoryName);
         $stmt->bindParam(2, $parentCategoryId);
-        $stmt->execute();
+        $stmt->execute(); 
         
         // Retournez l'ID de la nouvelle catégorie
         return $pdo->lastInsertId();
@@ -482,7 +704,8 @@ class Produit {
 
     public static function saveArticle($articleName, $categoryId)
     {
-        $pdo = Admin::db(); // Assurez-vous que cette méthode retourne un objet PDO
+        error_log("save $articleName, $categoryId ");
+        $pdo = \Models\Admin::db(); // Assurez-vous que cette méthode retourne un objet PDO
         
         // Vérifiez d'abord si la catégorie existe déjà
         $sql = "SELECT id FROM articles WHERE nom = ?  AND catId = ? ";
@@ -498,21 +721,25 @@ class Produit {
         
         // Récupérer l'ID si la catégorie existe déjà
         $existingId = $stmt->fetchColumn();
+        error_log("sql exist $sql2 $existingId");
+
         if ($existingId) {
             return $existingId;
         }
 
         // Si la catégorie n'existe pas, créez-la
         $sql = "INSERT INTO articles (nom, catId) VALUES (?, ?)";
+        $sql2 = "INSERT INTO articles (nom, catId) VALUES ('$articleName', $categoryId)";
         $stmt = $pdo->prepare($sql);
         
         // Liez les paramètres et exécutez la requête
         $stmt->bindParam(1, $articleName);
         $stmt->bindParam(2, $categoryId);
         $stmt->execute();
-        
+        $idprod = $pdo->lastInsertId();
+        error_log("sql add $sql2 prod ".$idprod);
         // Retournez l'ID de la nouvelle catégorie
-        return $pdo->lastInsertId();
+        return $idprod;
     }
 
         

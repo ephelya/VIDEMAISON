@@ -2,58 +2,80 @@
 
 {% block content %}  
     <div class="content pagecontent">
-    <h1>{{welcome}}</h1>
-    <h2>{{accroche1}}</h2>
-    {{accroche2}}
-{#         <br>créer gestion bdd de la hompage dans \Models\AdminSite::default_landing() pour  vérifier si une landing page est définie ou non. si c'est le cas faire basculer sur landing pour un AB/testing
-        <br> on affiche les sections. peut-on mettre section_x ectends section pour ouvoir gérer un modèle section.twig commun à toutes les sections ??
-        {% for section in sections %}
-            <section class="{{ section.name }}">
-                {% set templateName = 'templates/__S' ~ section.name ~ '.twig' %}
-                {% include templateName ignore missing %}
-            </section>
-        {% endfor %} #}
-             <button onclick="sendData()">Envoyer les Données - TEST API IMGCREATE</button>
-             <a href='admin'>Admin - upload products</a>
+
+        <h1>Vide-Maison à Chécy avant vente de la propriété</h1>
+        <h4>les 8 et 9 juin 2024 </h4>
+        <p>Voici quelques infos pratiques pour que tout se passe bien :</p>
+        
+        <h2>Paiement et Réservation</h2>
+        <ul>
+            <li>Paiement en ligne : Payez dès maintenant par paypal et récupérez vos articles impérativement pendant le vide maison.</li>
+            <li>Réservation : Vous pouvez réserver un article mais vous devrez le réfcupérer et le régler avant samedi 8 juin 15h faute de quoi il sera de nouveau disponible à la vente.</li>
+        </ul>
+        
+        <h2>Tarification</h2>
+        <ul>
+            <li>Les prix sont fermes. Toutefois 30% de réduction minimum seront appliqués sur le dimanche les articles non vendus.</li>
+        </ul>
+        
+        <h2>Horaires et Lieu</h2>
+        <ul>
+            <li>Quand : Samedi 8 et dimanche 9 juin, de 10h à 18h.</li>
+            <li>Où : 4 allée du Colombier, 45430 Chécy.</li>
+        </ul>
+    
+        
+        <p>Venez nombreux et profitez de bonnes affaires !</p>
+        
+        <div class="map-container">
+            <h2>Nous Trouver</h2>
+            <!-- Google Maps iframe -->
+            <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d2738.347809059585!2d2.0089810156040746!3d47.90060687920654!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x47e4e303be42b5b5%3A0xc42c3bbd9c7f8e6b!2s4%20All%C3%A9e%20du%20Colombier%2C%2045430%20Ch%C3%A9cy%2C%20France!5e0!3m2!1sen!2sus!4v1622702319178!5m2!1sen!2sus" width="600" height="450" style="border:0;" allowfullscreen="" loading="lazy"></iframe>
+        </div>
+            {% for catId, catMere in categories %}
+    {% if catId != 0 %}  <!-- Skip root category which is a placeholder for top-level categories -->
+        <h3>{{ catMere.name }}</h3>
+        <div>
+            <div class="accordion">
+                {% for subCatId, subCat in catMere.children %}
+                    <h3>{{ subCat.name }}</h3>
+                    <div> 
+                        <ul>
+                            {% for productId, product in subCat.Mère %}
+                                <li>
+                                    <div class="product-item">
+                                        {% if product.photos|length > 0 %}
+                                        <img src="{{ product.photos[0].urlPhoto }}" alt="Photo principale" onclick="toggleImages({{ productId }})">
+                                        <div id="product-{{ productId }}-images" class="extra-images" style="display: none;">
+                                            {% for photo in product.photos %}
+                                            <img src="{{ photo.urlPhoto }}" alt="Photo supplémentaire">
+                                            {% endfor %}
+                                        </div>
+                                        {% endif %}
+                                        <form action="/saveProductChanges" method="post">
+                                            <input type="text" name="nom" value="{{ product.nom }}">
+                                            <input type="text" name="prix" value="{{ product.prix }}">
+                                            <input type="hidden" name="productId" value="{{ productId }}">
+                                            <button type="submit">Save</button>
+                                            <button type="button" onclick="deleteProduct({{ productId }})">Delete</button>
+                                        </form>
+                                    </div>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                {% endfor %}
+            </div>
+
+            <div class='lbc'>
+<a href="https://www.leboncoin.fr/ad/ventes_immobilieres/2597127972">Annonce de la maison</a>
+<a href="https://www.leboncoin.fr/ad/ventes_immobilieres/2597127972"><img src='http://videmaison.nathaliebrigitte.com/img/photo.jpeg'></a>
+            </div>
+        </div>
+    {% endif %}
+{% endfor %}
 
     </div>
 
-{# 
-    <script>
-        function sendData() {
-            // Données à envoyer
-            const data = {
-                prompt: "un chaton mignon",
-                size: "150x150",
-            };
-
-            // Configuration de la requête
-            fetch('http://localhost:9007/imgCreate', {
-                method: 'POST',  // Méthode HTTP
-                headers: {
-                    'Content-Type': 'application/json'  // Indique que le corps est JSON
-                },
-                body: JSON.stringify(data)  // Conversion des données en chaîne JSON
-            })
-            .then(response => {
-                if (!response.ok) {  // Vérifie si la réponse a échoué
-                    throw new Error('Network response was not ok. Status: ' + response.status);
-                }
-                return response.json();  // Convertit la réponse en JSON
-            })
-            .then(json => {
-            //  console.log('Réponse de l\'API:', json);  // Log la réponse de l'API
-                const imageUrl = json.img2Url;
-                const userDescription = json.userDescription;    
-                console.log('Réponse de l\'API: imageUrl '+imageUrl+' userDescription: '+userDescription); 
-                })
-            .catch(error => {
-                console.error('Erreur lors de l\'envoi des données:', error);  // Log les erreurs rencontrées lors de la requête
-                const jserror =  error.message
-            });
-        }
-
-    </script>
- #}
 {% endblock %}
  

@@ -1,7 +1,7 @@
 <?php
 // routes.php
 
-session_start();
+//session_start();
 $_SESSION["userId"] = 445;
 
 
@@ -112,9 +112,7 @@ $app->post('/api/{api}', function (Request $request, Response $response, $args) 
     $api = $args['api'];
     error_log("apiValue env: $api " . print_r($_POST, true)."\n");
 
-    $apictrl = new \Controllers\ApiController();
-    $response = $apictrl->getApi($api);
-    return $response;
+    return \Controllers\ApiController::getApi($api, $request, $response, $args);
 });
 
 $app->get('/api/{api}', function (Request $request, Response $response, $args) use ($twig) {
@@ -124,6 +122,26 @@ $app->get('/api/{api}', function (Request $request, Response $response, $args) u
     $response = $apictrl->getApi($api);
     return $response;
 });
+
+// Route pour servir les fichiers dans le répertoire UPLOADS
+$app->get('/UPLOADS/{filename:.*}', function ($request, $response, $args) {
+    $filePath = __DIR__ . '/../UPLOADS/' . $args['filename'];
+    error_log("Trying to serve file: " . $filePath); // Log pour débogage
+    if (file_exists($filePath)) {
+        error_log("File exists: " . $filePath); // Log pour débogage
+
+        $fileStream = fopen($filePath, 'rb');
+        $response = $response->withHeader('Content-Type', mime_content_type($filePath));
+        $response->getBody()->write(stream_get_contents($fileStream));
+        fclose($fileStream);
+
+        return $response;
+    }
+    error_log("File not found: " . $filePath); // Log pour débogage
+    return $response->withStatus(404, 'File not found');
+});
+
+
 
 // Route pour gérer les URL non trouvées
 $app->map(['GET', 'POST', 'PUT', 'DELETE', 'PATCH'], '/{routes:.+}', function ($request, $response) {

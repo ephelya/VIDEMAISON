@@ -13,12 +13,12 @@ class ApiController {
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             //var_dump($_POST);
             // Récupérer directement les données POST et FILES, pas besoin de lire php://input
-            error_log("apiValue env: $api " . print_r($_POST, true)."\n");
-            if ($apiValue = \Utils\Api::$api($_POST)) {error_log("err envoi : " . print_r($apiValue, true)."\n");  } // Passer $_POST directement
-            error_log("apiValue recup: " . print_r($apiValue, true)."\n");
+            error_log("apiValue reçu de post: $api " . print_r($_POST, true)."\n");
+            if ($apiValue = \Utils\Api::$api($_POST))// {error_log("err envoi : " . print_r($apiValue, true)."\n");  } // Passer $_POST directement
+            //error_log("apiValue recup: " . print_r($apiValue, true)."\n");
 
             // Envoyer la réponse en JSON
-            echo json_encode($apiValue);
+            {echo json_encode($apiValue);}
         }
         else // methode get ou autre, l'api est définie en fonction public statique dans Utils/Api.php
         {
@@ -28,6 +28,8 @@ class ApiController {
             return ($result);
         }
     }
+
+
     
     public static function get_accounts()
     {

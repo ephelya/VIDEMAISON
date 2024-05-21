@@ -1,52 +1,121 @@
 {% extends "page.twig" %}
 
 {% block content %}
-
 <div class="content {{ page_name }}_content">
     <h1>Gestion des Produits {{ home }}</h1>
     {{ uploadbutton|raw }}
+    {{ updatebutton|raw }}
+    <button onclick="sendData()">Envoyer les Données - TEST API IMGCREATE</button>
 
-    {% for catId, catMere in categories %}
-    {% if catId != 0 %}  <!-- Skip root category which is a placeholder for top-level categories -->
-        <h3>{{ catMere.name }}</h3>
-        <div>
-            <div class="accordion">
-                {% for subCatId, subCat in catMere.children %}
-                    <h3>{{ subCat.name }}</h3>
-                    <div>
-                        <ul>
-                            {% for productId, product in subCat.products %}
-                                <li>
-                                    <div class="product-item">
-                                        {% if product.photos|length > 0 %}
-                                        <img src="{{ product.photos[0].urlPhoto }}" alt="Photo principale" onclick="toggleImages({{ productId }})">
-                                        <div id="product-{{ productId }}-images" class="extra-images" style="display: none;">
-                                            {% for photo in product.photos %}
-                                            <img src="{{ photo.urlPhoto }}" alt="Photo supplémentaire">
-                                            {% endfor %}
-                                        </div>
-                                        {% endif %}
-                                        <form action="/saveProductChanges" method="post">
-                                            <input type="text" name="nom" value="{{ product.nom }}">
-                                            <input type="text" name="prix" value="{{ product.prix }}">
-                                            <input type="hidden" name="productId" value="{{ productId }}">
-                                            <button type="submit">Save</button>
-                                            <button type="button" onclick="deleteProduct({{ productId }})">Delete</button>
-                                        </form>
-                                    </div>
-                                </li>
-                            {% endfor %}
-                        </ul>
+    <div class="accordion" id="mainAccordion">
+        {% for catId, catMere in categories %}
+            {% if catId != 0 %}
+                <h3>{{ catMere.name }}</h3>
+                <div>
+                    <div class="accordion" id="subAccordion-{{ catId }}">
+                        {% for subCatId, subCat in catMere.children %}
+                            <h3>{{ subCat.name }}</h3>
+                            <div>
+                                <ul>
+                                    {% for productId, product in subCat.products %}
+                                        <li>
+                                            <div class="product-item">
+                                                {% if product.photos|length > 0 %}
+                                                    <img src="/UPLOADS/{{ product.photos[0].urlPhoto }}" alt="Photo principale" onclick="toggleImages({{ productId }})">
+                                                    <div id="product-{{ productId }}-images" class="extra-images" style="display: none;">
+                                                        {% for photo in product.photos %}
+                                                            <img src="/UPLOADS/{{ photo.urlPhoto }}" alt="Photo supplémentaire">
+                                                        {% endfor %}
+                                                    </div>
+                                                {% endif %}
+                                                <form action="api/saveProductChanges" method="post">
+                                                    <label for="nom-{{ productId }}">Nom:</label>
+                                                    <input type="text" name="nom" id="nom-{{ productId }}" value="{{ product.nom }}">
+
+                                                    <label for="prix-{{ productId }}">Prix:</label>
+                                                    <input type="text" name="prix" id="prix-{{ productId }}" value="{{ product.prix }}">
+
+                                                    <label for="description-{{ productId }}">Description:</label>
+                                                    <textarea name="description" id="description-{{ productId }}">{{ product.description }}</textarea>
+
+                                                    <label for="etat-{{ productId }}">État:</label>
+                                                    <select name="etat" id="etat-{{ productId }}">
+                                                        <option value="neuf" {% if product.etat == 'neuf' %}selected{% endif %}>Neuf</option>
+                                                        <option value="très bon" {% if product.etat == 'très bon' %}selected{% endif %}>Très bon</option>
+                                                        <option value="bon" {% if product.etat == 'bon' %}selected{% endif %}>Bon</option>
+                                                        <option value="correct" {% if product.etat == 'correct' or not product.etat %}selected{% endif %}>Correct</option>
+                                                        <option value="à rénover ou réparer" {% if product.etat == 'à rénover ou réparer' %}selected{% endif %}>À rénover ou réparer</option>
+                                                    </select>
+
+                                                    <label for="hauteur-{{ productId }}">Hauteur:</label>
+                                                    <input type="text" name="hauteur" id="hauteur-{{ productId }}" value="{{ product.hauteur }}">
+
+                                                    <label for="largeur-{{ productId }}">Largeur:</label>
+                                                    <input type="text" name="largeur" id="largeur-{{ productId }}" value="{{ product.largeur }}">
+
+                                                    <p>Statut: {{ product.statut }}</p>
+                                                    <p>Annonce : {{ product.annonce }}</p>
+
+                                                    <input type="hidden" name="productId" value="{{ productId }}">
+                                                    <button type="submit">Mettre à jour</button>
+                                                    <button type="button" onclick="deleteProduct({{ productId }})">Supprimer</button>
+                                                    <button type="button" onclick="description_gen({{ productId }})">Annonce IA</button>
+                                                </form>
+                                            </div>
+                                        </li>
+                                    {% endfor %}
+                                </ul>
+                            </div>
+                        {% endfor %}
                     </div>
-                {% endfor %}
-            </div>
-        </div>
-    {% endif %}
-{% endfor %}
+                </div>
+            {% endif %}
+        {% endfor %}
+    </div>
+</div>
 
-</div> 
 
 <script>
+$(document).ready(function() {
+    $("#mainAccordion").accordion({
+        heightStyle: "content",
+        collapsible: true,
+        active: false
+    });
+    $('[id^="subAccordion-"]').accordion({
+        heightStyle: "content",
+        collapsible: true,
+        active: false
+    });
+
+    // Intercepter la soumission du formulaire
+    $('form').on('submit', function(e) {
+        e.preventDefault(); // Empêcher le rechargement de la page
+
+        var form = $(this);
+        var formData = form.serialize(); // Sérialiser les données du formulaire
+        //console.log("data ", formData);
+        // Envoyer les données via AJAX
+        $.ajax({
+            url: '/api/saveProductChanges',
+            type: 'POST',
+            data: formData,
+            dataType: 'json',
+            success: function(response) {
+                console.log("response ", response);
+                if (response.status == 200) {
+                    alert('Product updated successfully');
+                } else {
+                    alert('Failed to update product: ' + response.message);
+                }
+            },
+            error: function() {
+                alert('An error occurred while updating the product.');
+            }
+        });
+    });
+});
+
 function toggleImages(productId) {
     var x = document.getElementById("product-" + productId + "-images");
     if (x.style.display === "none") {
@@ -56,13 +125,60 @@ function toggleImages(productId) {
     }
 }
 
-function deleteProduct(productId) {
-    // Ajouter une confirmation ou un code pour supprimer un produit
-    console.log("Deleting product: ", productId);
+function description_gen(productId) {
+    console.log("Generation auto: ", productId);
+
+    var form = $('#nom-' + productId).closest('form');
+    var formData = form.serialize(); // Sérialiser les données du formulaire
+    //console.log("data ", formData);
+    // Envoyer les données via AJAX
+    $.ajax({
+        url: '/api/descriptionGen',
+        type: 'POST',
+        data: formData,
+        dataType: 'json',
+        success: function(response) {
+            console.log("response ", response);
+            if (response.status == 200) {
+                alert('Description générée');
+            } else {
+                alert('Failed to generate description: ' + response.message);
+            }
+        },
+        error: function() {
+            alert('An error occurred while generating the description.');
+        }
+    });
 }
+
+function deleteProduct(productId) {
+    console.log("Deleting product: ", productId);
+
+    // Envoyer les données via AJAX
+    $.ajax({
+        url: '/api/deleteProduct',
+        type: 'POST',
+        data: { productId: productId },
+        dataType: 'json',
+        success: function(response) {
+            console.log("response ", response);
+            if (response.status == 200) {
+                alert('Article supprimé');
+                // Retirer l'élément du DOM
+                $('#product-' + productId).closest('li').remove();
+            } else {
+                alert('Failed to delete product: ' + response.message);
+            }
+        },
+        error: function() {
+            alert('An error occurred while deleting the product.');
+        }
+    });
+}
+
 </script>
 
 
-</div>
+
 
 {% endblock %}

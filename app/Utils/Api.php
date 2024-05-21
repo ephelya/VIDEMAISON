@@ -7,6 +7,7 @@ use \Models\Admin;
 use \Models\Photos;
 use \Models\Files;
 use \Models\CSS;
+use \Models\Produit;
 
 
 class Api {
@@ -45,8 +46,70 @@ class Api {
         echo json_encode($response);
  }
 
-     
-        
+ public static function  update_products ()
+ {
+    $response = [];
+       if ( \Models\Produit::productsRecord()) 
+        { $response['status'] = 200;}
 
+        echo json_encode($response);
+ }
+ 
+
+ public static function deleteProduct() {
+    $data = $_POST;
+
+    error_log("data reçures dans api deleteProduct ".print_r($data));
+    $productId = $data['productId'];
+
+    $product =   \Models\Produit::getProduct($productId);
+    error_log("profuit ".print_r($product, true));
+
+    if ($product) {
+        $product->delete($productId);
+        $response['status'] = 200;
+    } else {
+        $response = ['success' => false, 'message' => 'Product not found'];
+    }
+    //error_log("response ".print_r($response, true));
+    //header('Content-Type: application/json');
+    echo json_encode($response); exit();
+}
+    public static function saveProductChanges() {
+        $data = $_POST;
+        error_log("data reçures dans api saveProductChanges ".print_r($data));
+        $productId = $data['productId'];
+        unset($data['productId']);
+
+        $product = \Models\Produit::getProduct($productId); // Suppose que getProduct renvoie un objet Produit
+        if ($product) {
+            $product->update($data);
+        // $response = ['success' => true, 'message' => 'Product updated successfully'];
+            $response['status'] = 200;
+        } else {
+            $response = ['success' => false, 'message' => 'Product not found'];
+        }
+        //error_log("response ".print_r($response, true));
+        //header('Content-Type: application/json');
+        echo json_encode($response); exit();
+    }
+
+    public static function descriptionGen() {
+        $data = $_POST;
+    
+        error_log("data reçures dans api deleteProduct ".print_r($data));
+        $productId = $data['productId'];
+    
+        $product =  new Produit($productId);
+        if ($product) {
+            $product->delete($productId);
+            $response['status'] = 200;
+        } else {
+            $response = ['success' => false, 'message' => 'Product not found'];
+        }
+        //error_log("response ".print_r($response, true));
+        //header('Content-Type: application/json');
+        echo json_encode($response); exit();
+    }
 
 }
